@@ -2,18 +2,18 @@
 
 /* Reset & Base Styles */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #1f2937;
-  background: #f9fafb;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #1f2937;
+    background: #f9fafb;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Import Google Fonts */
@@ -21,184 +21,295 @@ body {
 
 /* Global App Styles */
 .app {
-  min-height: 100vh;
-  position: relative;
+    min-height: 100vh;
+    position: relative;
 }
 
 /* Loading Styles */
 .loading-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #fce7f3, #e9d5ff, #ddd6fe);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #fce7f3, #e9d5ff, #ddd6fe);
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(236, 72, 153, 0.3);
-  border-top: 4px solid #ec4899;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(236, 72, 153, 0.3);
+    border-top: 4px solid #ec4899;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-text {
-  margin-top: 16px;
-  color: #6b7280;
-  font-size: 16px;
-  font-weight: 500;
+    margin-top: 16px;
+    color: #6b7280;
+    font-size: 16px;
+    font-weight: 500;
 }
 
 /* Global Button Animations */
 button {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 button:hover {
-  transform: translateY(-1px);
+    transform: translateY(-1px);
 }
 
 button:active {
-  transform: translateY(0);
+    transform: translateY(0);
 }
 
 /* Global Input Styles */
-input, select, textarea {
-  font-family: inherit;
+input,
+select,
+textarea {
+    font-family: inherit;
 }
 
-input:focus, select:focus, textarea:focus {
-  outline: none;
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
 }
 
 /* Smooth Scrolling */
 html {
-  scroll-behavior: smooth;
+    scroll-behavior: smooth;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+    width: 8px;
+    height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(243, 244, 246, 0.5);
-  border-radius: 4px;
+    background: rgba(243, 244, 246, 0.5);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  border-radius: 4px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #db2777, #7c3aed);
+    background: linear-gradient(135deg, #db2777, #7c3aed);
 }
 
 /* Glassmorphism Effect Utility */
 .glass {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Gradient Text Utility */
 .gradient-text {
-  background: linear-gradient(135deg, #ec4899, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 /* Card Shadow Utility */
 .card-shadow {
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 /* Animation Utilities */
 .fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+    animation: fadeIn 0.5s ease-in-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .slide-up {
-  animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive Utilities */
 .container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
 }
 
 .container-lg {
-  max-width: 1400px;
+    max-width: 1400px;
 }
 
 .container-sm {
-  max-width: 600px;
+    max-width: 600px;
 }
 
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
-  .container {
-    padding: 0 16px;
-  }
+    .container {
+        padding: 0 16px;
+    }
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 0 12px;
-  }
+    .container {
+        padding: 0 12px;
+    }
 }
 
 @media (max-width: 640px) {
-  .container {
-    padding: 0 8px;
-  }
+    .container {
+        padding: 0 8px;
+    }
 }
 
 /* Print Styles */
 @media print {
-  .dashboard-header,
-  .logout-btn,
-  .action-btn {
-    display: none !important;
-  }
-  
-  .dashboard-content {
-    grid-template-columns: 1fr !important;
-  }
-  
-  .submission-item {
-    break-inside: avoid;
-    margin-bottom: 20px;
-  }
+
+    .dashboard-header,
+    .logout-btn,
+    .action-btn {
+        display: none !important;
+    }
+
+    .dashboard-content {
+        grid-template-columns: 1fr !important;
+    }
+
+    .submission-item {
+        break-inside: avoid;
+        margin-bottom: 20px;
+    }
+}
+
+/* Tambahkan ke Global.css */
+
+/* Auto Login Alert Styles */
+.auto-login-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+}
+
+.alert-content {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.alert-content p {
+    font-size: 16px;
+    color: #374151;
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.alert-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+}
+
+.btn-stay {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-stay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-logout {
+    background: linear-gradient(135deg, #f87171, #ef4444);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .alert-content {
+        padding: 24px 20px;
+    }
+
+    .alert-buttons {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-stay,
+    .btn-logout {
+        width: 100%;
+    }
 }
