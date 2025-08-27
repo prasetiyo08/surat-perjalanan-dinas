@@ -1,14 +1,34 @@
 // src/components/Login.js
-import React, { useState } from "react";
-import "../styles/Login.css";
-import { auth } from "../config/firebase";
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import React, { useState, useEffect } from "react";
+// Menggunakan impor yang relatif terhadap root proyek untuk menghindari kesalahan resolusi
+import "./styles/Login.css";
+import { auth } from "./config/firebase";
+import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, browserLocalPersistence, onAuthStateChanged } from 'firebase/auth';
 
 const Login = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [rememberMe, setRememberMe] = useState(false); // State baru untuk "Tetap Login"
+
+  // useEffect untuk memeriksa status otentikasi saat komponen dimuat
+  useEffect(() => {
+    // onAuthStateChanged akan mendeteksi status login, termasuk "Tetap Login"
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // Jika pengguna sudah login, panggil onLogin
+        onLogin({
+          email: user.email,
+          uid: user.uid,
+          displayName: user.displayName || user.email,
+        });
+      }
+    });
+
+    // Clean-up function untuk menghentikan listener saat komponen dilepas
+    return () => unsubscribe();
+  }, [onLogin]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -34,16 +54,14 @@ const Login = ({ onLogin }) => {
     }
 
     try {
+      // Menentukan persistensi berdasarkan state "rememberMe"
+      const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+      await setPersistence(auth, persistenceType);
+
       const result = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
       console.log("Login berhasil:", result.user);
       
-      // Firebase auth state akan otomatis update di App.js
-      // Tidak perlu manual call onLogin, tapi tetap dipanggil untuk kompatibilitas
-      onLogin({
-        email: result.user.email,
-        uid: result.user.uid,
-        displayName: result.user.displayName || result.user.email
-      });
+      // onLogin akan dipanggil oleh useEffect saat auth state berubah
     } catch (err) {
       console.error("Login error:", err);
       
@@ -126,6 +144,18 @@ const Login = ({ onLogin }) => {
               required
               autoComplete="current-password"
             />
+          </div>
+
+          {/* Checkbox "Tetap Login" yang baru */}
+          <div className="login-input-group remember-me">
+            <label>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
+              Tetap Login
+            </label>
           </div>
 
           <button
