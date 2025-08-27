@@ -1,20 +1,72 @@
-import React, { useState } from 'react';
+// src/components/Dashboard.js
+import React, { useState, useEffect } from 'react';
 import InputForm from './InputForm';
 import '../styles/Dashboard.css';
 import { auth } from '../config/firebase';
 import { signOut } from 'firebase/auth';
+import { firestore } from '../config/firebase';
 
 const Dashboard = ({ user, onLogout }) => {
   const [submissions, setSubmissions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleFormSubmit = (formData) => {
-    setSubmissions([formData, ...submissions]);
-    alert('Data berhasil disimpan!');
+  // Load data dari Firestore saat component mount
+  useEffect(() => {
+    loadSubmissions();
+  }, []);
+
+  const loadSubmissions = async () => {
+    try {
+      setLoading(true);
+      const data = await firestore.getDocuments('surat-perjalanan');
+      
+      // Sort by createdAt descending (terbaru dulu)
+      const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      setSubmissions(sortedData);
+    } catch (error) {
+      console.error('Error loading submissions:', error);
+      alert('Gagal memuat data. Periksa koneksi internet.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleFormSubmit = async (formData) => {
+    try {
+      // Tambah data ke Firestore
+      const docRef = await firestore.addDocument('surat-perjalanan', {
+        ...formData,
+        userId: user.uid, // Tambah user ID untuk filter data
+        userEmail: user.email
+      });
+      
+      // Update local state dengan data baru
+      const newSubmission = {
+        id: docRef.id,
+        ...formData,
+        userId: user.uid,
+        userEmail: user.email
+      };
+      
+      setSubmissions([newSubmission, ...submissions]);
+      alert('Data berhasil disimpan ke database!');
+    } catch (error) {
+      console.error('Error saving submission:', error);
+      alert('Gagal menyimpan data. Coba lagi.');
+    }
+  };
+
+  const handleDelete = async (id) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-      setSubmissions(submissions.filter(item => item.id !== id));
+      try {
+        await firestore.deleteDocument('surat-perjalanan', id);
+        setSubmissions(submissions.filter(item => item.id !== id));
+        alert('Data berhasil dihapus!');
+      } catch (error) {
+        console.error('Error deleting submission:', error);
+        alert('Gagal menghapus data. Coba lagi.');
+      }
     }
   };
 
@@ -27,7 +79,6 @@ const Dashboard = ({ user, onLogout }) => {
     try {
       await signOut(auth);
       console.log('User logged out successfully');
-      // onLogout akan dipanggil otomatis oleh auth state listener di App.js
       if (onLogout) {
         onLogout();
       }
@@ -81,11 +132,16 @@ const Dashboard = ({ user, onLogout }) => {
             <div className="card-header">
               <h2 className="card-title">Data Perjalanan Tersimpan</h2>
               <div className="card-badge">
-                {submissions.length} Data
+                {loading ? 'Loading...' : `${submissions.length} Data`}
               </div>
             </div>
             
-            {submissions.length === 0 ? (
+            {loading ? (
+              <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p className="loading-text">Memuat data...</p>
+              </div>
+            ) : submissions.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">📋</div>
                 <h3 className="empty-title">Belum Ada Data</h3>
@@ -160,7 +216,7 @@ const Dashboard = ({ user, onLogout }) => {
                     
                     <div className="submission-footer">
                       <span className="submission-date">
-                        Dibuat: {item.tanggalDibuat}
+                        Dibuat: {item.createdAt ? new Date(item.createdAt.toDate()).toLocaleDateString('id-ID') : item.tanggalDibuat}
                       </span>
                       <span className={`status-badge ${item.biayaPerjalanan.toLowerCase()}`}>
                         {item.biayaPerjalanan}

@@ -17,6 +17,7 @@ const InputForm = ({ onSubmit }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -76,41 +77,79 @@ const InputForm = ({ onSubmit }) => {
       }
     }
     
+    // Validate past dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (formData.tanggalMulai) {
+      const startDate = new Date(formData.tanggalMulai);
+      if (startDate < today) {
+        newErrors.tanggalMulai = 'Tanggal mulai tidak boleh di masa lalu';
+      }
+    }
+    
     return newErrors;
   };
 
-  const handleSubmit = () => {
-    const validationErrors = validateForm();
+  const generateNomorSurat = () => {
+    const currentDate = new Date();
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = currentDate.getFullYear();
+    const randomNumber = Math.floor(Math.random() * 999) + 1;
     
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    return `SPPD.${randomNumber.toString().padStart(3, '0')}/DH/${month}/${year}-B`;
+  };
 
-    const submissionData = {
-      ...formData,
-      id: Date.now(),
-      tanggalDibuat: new Date().toLocaleDateString('id-ID'),
-      nomorSurat: `SPPD.${Math.floor(Math.random() * 100)}/DH/${new Date().getMonth() + 1}/${new Date().getFullYear()}-B`,
-      pengikut: formData.pengikut.filter(p => p.trim() !== '') // Remove empty pengikut
-    };
+  const handleSubmit = async () => {
+    // Set loading state
+    setLoading(true);
     
-    onSubmit(submissionData);
-    
-    // Reset form
-    setFormData({
-      nama: '',
-      jabatan: '',
-      tujuan: '',
-      keperluan: '',
-      tanggalMulai: '',
-      tanggalSelesai: '',
-      biayaPerjalanan: 'Perusahaan',
-      fasilitasTransport: '',
-      fasilitasPenginapan: '',
-      pengikut: ['']
-    });
-    setErrors({});
+    try {
+      const validationErrors = validateForm();
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        setLoading(false);
+        return;
+      }
+
+      const submissionData = {
+        ...formData,
+        nomorSurat: generateNomorSurat(),
+        pengikut: formData.pengikut.filter(p => p.trim() !== ''), // Remove empty pengikut
+        tanggalDibuat: new Date().toLocaleDateString('id-ID') // Will be overridden by Firestore createdAt
+      };
+      
+      // Call onSubmit (async function from Dashboard)
+      await onSubmit(submissionData);
+      
+      // Reset form after successful submission
+      setFormData({
+        nama: '',
+        jabatan: '',
+        tujuan: '',
+        keperluan: '',
+        tanggalMulai: '',
+        tanggalSelesai: '',
+        biayaPerjalanan: 'Perusahaan',
+        fasilitasTransport: '',
+        fasilitasPenginapan: '',
+        pengikut: ['']
+      });
+      setErrors({});
+      
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      // Error handling akan ditangani di Dashboard component
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      handleSubmit();
+    }
   };
 
   return (
@@ -121,13 +160,16 @@ const InputForm = ({ onSubmit }) => {
         {/* Row 1: Nama dan Jabatan */}
         <div className="input-form-row">
           <div className="input-form-group">
-            <label className="input-form-label">Nama *</label>
+            <label className="input-form-label">Nama Lengkap *</label>
             <input
               type="text"
               value={formData.nama}
               onChange={(e) => handleInputChange('nama', e.target.value)}
+              onKeyPress={handleKeyPress}
               className={`input-form-input ${errors.nama ? 'error' : ''}`}
               placeholder="Masukkan nama lengkap"
+              disabled={loading}
+              maxLength={100}
             />
             {errors.nama && <span className="input-form-error">{errors.nama}</span>}
           </div>
@@ -138,8 +180,11 @@ const InputForm = ({ onSubmit }) => {
               type="text"
               value={formData.jabatan}
               onChange={(e) => handleInputChange('jabatan', e.target.value)}
+              onKeyPress={handleKeyPress}
               className={`input-form-input ${errors.jabatan ? 'error' : ''}`}
               placeholder="Contoh: VP ACCOUNTING"
+              disabled={loading}
+              maxLength={50}
             />
             {errors.jabatan && <span className="input-form-error">{errors.jabatan}</span>}
           </div>
@@ -148,25 +193,31 @@ const InputForm = ({ onSubmit }) => {
         {/* Row 2: Tujuan dan Keperluan */}
         <div className="input-form-row">
           <div className="input-form-group">
-            <label className="input-form-label">Tujuan *</label>
+            <label className="input-form-label">Tujuan Perjalanan *</label>
             <input
               type="text"
               value={formData.tujuan}
               onChange={(e) => handleInputChange('tujuan', e.target.value)}
+              onKeyPress={handleKeyPress}
               className={`input-form-input ${errors.tujuan ? 'error' : ''}`}
               placeholder="Contoh: YOGYAKARTA"
+              disabled={loading}
+              maxLength={100}
             />
             {errors.tujuan && <span className="input-form-error">{errors.tujuan}</span>}
           </div>
           
           <div className="input-form-group">
-            <label className="input-form-label">Keperluan *</label>
+            <label className="input-form-label">Keperluan Perjalanan *</label>
             <input
               type="text"
               value={formData.keperluan}
               onChange={(e) => handleInputChange('keperluan', e.target.value)}
+              onKeyPress={handleKeyPress}
               className={`input-form-input ${errors.keperluan ? 'error' : ''}`}
               placeholder="Contoh: PELATIHAN CASHFLOW"
+              disabled={loading}
+              maxLength={200}
             />
             {errors.keperluan && <span className="input-form-error">{errors.keperluan}</span>}
           </div>
@@ -181,6 +232,8 @@ const InputForm = ({ onSubmit }) => {
               value={formData.tanggalMulai}
               onChange={(e) => handleInputChange('tanggalMulai', e.target.value)}
               className={`input-form-input ${errors.tanggalMulai ? 'error' : ''}`}
+              disabled={loading}
+              min={new Date().toISOString().split('T')[0]}
             />
             {errors.tanggalMulai && <span className="input-form-error">{errors.tanggalMulai}</span>}
           </div>
@@ -192,6 +245,8 @@ const InputForm = ({ onSubmit }) => {
               value={formData.tanggalSelesai}
               onChange={(e) => handleInputChange('tanggalSelesai', e.target.value)}
               className={`input-form-input ${errors.tanggalSelesai ? 'error' : ''}`}
+              disabled={loading}
+              min={formData.tanggalMulai || new Date().toISOString().split('T')[0]}
             />
             {errors.tanggalSelesai && <span className="input-form-error">{errors.tanggalSelesai}</span>}
           </div>
@@ -205,13 +260,16 @@ const InputForm = ({ onSubmit }) => {
               value={formData.fasilitasTransport}
               onChange={(e) => handleInputChange('fasilitasTransport', e.target.value)}
               className={`input-form-input ${errors.fasilitasTransport ? 'error' : ''}`}
+              disabled={loading}
             >
-              <option value="">Pilih Transport</option>
+              <option value="">Pilih Fasilitas Transport</option>
               <option value="Pesawat Udara">Pesawat Udara</option>
               <option value="Mobil Dinas">Mobil Dinas</option>
               <option value="Bus">Bus</option>
               <option value="Kereta Api">Kereta Api</option>
               <option value="Kapal">Kapal</option>
+              <option value="Motor">Motor</option>
+              <option value="Lainnya">Lainnya</option>
             </select>
             {errors.fasilitasTransport && <span className="input-form-error">{errors.fasilitasTransport}</span>}
           </div>
@@ -222,9 +280,12 @@ const InputForm = ({ onSubmit }) => {
               value={formData.fasilitasPenginapan}
               onChange={(e) => handleInputChange('fasilitasPenginapan', e.target.value)}
               className={`input-form-input ${errors.fasilitasPenginapan ? 'error' : ''}`}
+              disabled={loading}
             >
-              <option value="">Pilih Penginapan</option>
-              <option value="Hotel">Hotel</option>
+              <option value="">Pilih Fasilitas Penginapan</option>
+              <option value="Hotel Bintang 5">Hotel Bintang 5</option>
+              <option value="Hotel Bintang 4">Hotel Bintang 4</option>
+              <option value="Hotel Bintang 3">Hotel Bintang 3</option>
               <option value="Guest House">Guest House</option>
               <option value="Wisma">Wisma</option>
               <option value="Tidak Ada">Tidak Ada</option>
@@ -244,9 +305,10 @@ const InputForm = ({ onSubmit }) => {
                 value="Perusahaan"
                 checked={formData.biayaPerjalanan === 'Perusahaan'}
                 onChange={(e) => handleInputChange('biayaPerjalanan', e.target.value)}
+                disabled={loading}
               />
               <span className="radio-custom"></span>
-              Perusahaan
+              Biaya Perusahaan
             </label>
             <label className="radio-label">
               <input
@@ -255,16 +317,17 @@ const InputForm = ({ onSubmit }) => {
                 value="Pribadi"
                 checked={formData.biayaPerjalanan === 'Pribadi'}
                 onChange={(e) => handleInputChange('biayaPerjalanan', e.target.value)}
+                disabled={loading}
               />
               <span className="radio-custom"></span>
-              Pribadi
+              Biaya Pribadi
             </label>
           </div>
         </div>
 
         {/* Pengikut */}
         <div className="input-form-group">
-          <label className="input-form-label">Pengikut (Opsional)</label>
+          <label className="input-form-label">Pengikut Perjalanan (Opsional)</label>
           <div className="pengikut-container">
             {formData.pengikut.map((pengikut, index) => (
               <div key={index} className="pengikut-row">
@@ -273,7 +336,10 @@ const InputForm = ({ onSubmit }) => {
                   placeholder={`Nama pengikut ${index + 1}`}
                   value={pengikut}
                   onChange={(e) => handlePengikutChange(index, e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="pengikut-input"
+                  disabled={loading}
+                  maxLength={100}
                 />
                 {formData.pengikut.length > 1 && (
                   <button
@@ -281,28 +347,43 @@ const InputForm = ({ onSubmit }) => {
                     onClick={() => removePengikut(index)}
                     className="remove-pengikut-btn"
                     title="Hapus pengikut"
+                    disabled={loading}
                   >
                     ✕
                   </button>
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              onClick={addPengikut}
-              className="add-pengikut-btn"
-            >
-              + Tambah Pengikut
-            </button>
+            {formData.pengikut.length < 10 && (
+              <button
+                type="button"
+                onClick={addPengikut}
+                className="add-pengikut-btn"
+                disabled={loading}
+              >
+                + Tambah Pengikut
+              </button>
+            )}
           </div>
         </div>
 
+        {/* Submit Button */}
         <button 
           onClick={handleSubmit}
-          className="submit-btn"
+          disabled={loading}
+          className={`submit-btn ${loading ? 'loading' : ''}`}
         >
-          <span className="submit-btn-text">Simpan Data Perjalanan</span>
+          <span className="submit-btn-text">
+            {loading ? 'Menyimpan Data...' : 'Simpan Data Perjalanan'}
+          </span>
         </button>
+        
+        {/* Hint */}
+        <div className="form-hint">
+          <p>
+            <strong>Tips:</strong> Gunakan Ctrl+Enter untuk submit form dengan cepat
+          </p>
+        </div>
       </div>
     </div>
   );
