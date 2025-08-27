@@ -1,4 +1,4 @@
-// src/components/Dashboard.js - OPTIMIZED VERSION
+// src/components/Dashboard.js - OPTIMIZED VERSION - Fixed Loading Issues
 import React, { useState, useEffect } from "react";
 import InputForm from "./InputForm";
 import "../styles/Dashboard.css";
@@ -11,9 +11,10 @@ const Dashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load data dengan retry mechanism dan timeout
+  // FIXED: Optimized loading with proper timeout and error handling
   useEffect(() => {
-    let isMounted = true; // Prevent state updates if component unmounted
+    let isMounted = true;
+    let loadingTimeout;
     
     const loadSubmissions = async () => {
       try {
@@ -22,28 +23,27 @@ const Dashboard = ({ user, onLogout }) => {
         
         console.log("Loading submissions...");
         
-        // Add timeout untuk loading
-        const timeoutId = setTimeout(() => {
-          if (isMounted) {
-            console.log("Loading timeout reached");
-            setError("Loading terlalu lama. Mencoba lagi...");
-            // Retry setelah timeout
-            setTimeout(() => {
-              if (isMounted) {
-                loadSubmissionsWithCache();
-              }
-            }, 2000);
+        // Set a shorter timeout for better UX
+        loadingTimeout = setTimeout(() => {
+          if (isMounted && loading) {
+            console.log("Loading timeout - trying cache");
+            loadFromCache();
           }
-        }, 8000); // 8 second timeout
+        }, 3000); // Reduced from 8000ms to 3000ms
         
-        const data = await firestore.getDocuments("surat-perjalanan", true);
+        // Try to load data with a race condition for timeout
+        const dataPromise = firestore.getDocuments("surat-perjalanan", false); // Don't use cache first
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Network timeout')), 5000)
+        );
         
-        // Clear timeout jika berhasil
-        clearTimeout(timeoutId);
+        const data = await Promise.race([dataPromise, timeoutPromise]);
         
-        if (!isMounted) return; // Component unmounted
+        clearTimeout(loadingTimeout);
         
-        // Sort by createdAt descending (terbaru dulu)
+        if (!isMounted) return;
+        
+        // Sort by createdAt descending
         const sortedData = data.sort((a, b) => {
           const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
           const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
@@ -51,18 +51,16 @@ const Dashboard = ({ user, onLogout }) => {
         });
 
         setSubmissions(sortedData);
-        console.log(`Loaded ${sortedData.length} submissions`);
+        setError(null);
+        console.log(`Loaded ${sortedData.length} submissions successfully`);
         
       } catch (error) {
         console.error("Error loading submissions:", error);
+        clearTimeout(loadingTimeout);
+        
         if (isMounted) {
-          setError(`Gagal memuat data: ${error.message}`);
-          // Auto retry after 3 seconds
-          setTimeout(() => {
-            if (isMounted) {
-              loadSubmissionsWithCache();
-            }
-          }, 3000);
+          // Try loading from cache as fallback
+          await loadFromCache();
         }
       } finally {
         if (isMounted) {
@@ -71,46 +69,51 @@ const Dashboard = ({ user, onLogout }) => {
       }
     };
     
-    // Function to load with cache fallback
-    const loadSubmissionsWithCache = async () => {
+    // Fallback function to load from cache
+    const loadFromCache = async () => {
       try {
-        setLoading(true);
-        // Try cache first, then server
-        const data = await firestore.getDocuments("surat-perjalanan", true);
+        console.log("Attempting to load from cache...");
+        const cachedData = await firestore.getDocuments("surat-perjalanan", true);
+        
         if (isMounted) {
-          const sortedData = data.sort((a, b) => {
-            const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
-            const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
-            return dateB - dateA;
-          });
-          setSubmissions(sortedData);
-          setError(null);
+          if (cachedData.length > 0) {
+            const sortedData = cachedData.sort((a, b) => {
+              const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
+              const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
+              return dateB - dateA;
+            });
+            setSubmissions(sortedData);
+            setError("Data dimuat dari cache. Refresh untuk data terbaru.");
+            console.log(`Loaded ${sortedData.length} submissions from cache`);
+          } else {
+            setError("Tidak dapat memuat data. Pastikan koneksi internet stabil.");
+          }
         }
-      } catch (error) {
-        console.error("Cache loading failed:", error);
+      } catch (cacheError) {
+        console.error("Cache loading failed:", cacheError);
         if (isMounted) {
-          setError("Tidak dapat memuat data. Periksa koneksi internet.");
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
+          setError("Gagal memuat data. Periksa koneksi internet dan refresh halaman.");
         }
       }
     };
 
+    // Start loading immediately
     loadSubmissions();
     
     // Cleanup function
     return () => {
       isMounted = false;
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+      }
     };
-  }, []); // Empty dependency array - only load once
+  }, []); // Only run once
 
   const handleFormSubmit = async (formData) => {
     try {
       console.log("Submitting form data...");
       
-      // Optimistic update - add to UI immediately
+      // Optimistic update
       const tempId = `temp_${Date.now()}`;
       const newSubmission = {
         id: tempId,
@@ -118,18 +121,23 @@ const Dashboard = ({ user, onLogout }) => {
         userId: user.uid,
         userEmail: user.email,
         createdAt: new Date(),
-        isTemporary: true // Mark as temporary
+        isTemporary: true
       };
       
-      // Add to UI immediately
       setSubmissions(prev => [newSubmission, ...prev]);
       
-      // Save to Firestore in background
-      const docRef = await firestore.addDocument("surat-perjalanan", {
+      // Save to Firestore with timeout
+      const submitPromise = firestore.addDocument("surat-perjalanan", {
         ...formData,
         userId: user.uid,
         userEmail: user.email,
       });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Submit timeout')), 10000)
+      );
+      
+      const docRef = await Promise.race([submitPromise, timeoutPromise]);
 
       // Replace temporary item with real one
       setSubmissions(prev => prev.map(item => 
@@ -146,26 +154,33 @@ const Dashboard = ({ user, onLogout }) => {
       // Remove temporary item on error
       setSubmissions(prev => prev.filter(item => !item.isTemporary));
       
-      // Show specific error message
-      if (error.message.includes('network')) {
-        alert("Gagal menyimpan: Masalah koneksi internet");
+      let errorMessage = "Gagal menyimpan: ";
+      if (error.message.includes('timeout')) {
+        errorMessage += "Koneksi terlalu lambat. Coba lagi.";
+      } else if (error.message.includes('network')) {
+        errorMessage += "Masalah koneksi internet";
       } else if (error.message.includes('permission')) {
-        alert("Gagal menyimpan: Tidak memiliki izin");
+        errorMessage += "Tidak memiliki izin";
       } else {
-        alert(`Gagal menyimpan data: ${error.message}`);
+        errorMessage += error.message;
       }
+      
+      alert(errorMessage);
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
       try {
-        // Optimistic delete - remove from UI first
         const itemToDelete = submissions.find(item => item.id === id);
         setSubmissions(prev => prev.filter(item => item.id !== id));
         
-        // Delete from Firestore
-        await firestore.deleteDocument("surat-perjalanan", id);
+        const deletePromise = firestore.deleteDocument("surat-perjalanan", id);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Delete timeout')), 8000)
+        );
+        
+        await Promise.race([deletePromise, timeoutPromise]);
         console.log("Data deleted successfully");
         
       } catch (error) {
@@ -180,7 +195,7 @@ const Dashboard = ({ user, onLogout }) => {
           }));
         }
         
-        alert(`Gagal menghapus data: ${error.message}`);
+        alert(`Gagal menghapus: ${error.message.includes('timeout') ? 'Koneksi lambat' : error.message}`);
       }
     }
   };
@@ -205,8 +220,27 @@ const Dashboard = ({ user, onLogout }) => {
   const handleRetry = () => {
     setError(null);
     setLoading(true);
-    // Trigger reload
+    // Force reload
     window.location.reload();
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await firestore.getDocuments("surat-perjalanan", false);
+      const sortedData = data.sort((a, b) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
+        const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
+        return dateB - dateA;
+      });
+      setSubmissions(sortedData);
+    } catch (error) {
+      setError("Gagal refresh data: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -254,8 +288,18 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="dashboard-card">
             <div className="card-header">
               <h2 className="card-title">Data Perjalanan Tersimpan</h2>
-              <div className="card-badge">
-                {loading ? "Loading..." : `${submissions.length} Data`}
+              <div className="card-header-actions">
+                <button 
+                  onClick={handleRefresh} 
+                  className="refresh-btn"
+                  disabled={loading}
+                  title="Refresh data"
+                >
+                  🔄
+                </button>
+                <div className="card-badge">
+                  {loading ? "Loading..." : `${submissions.length} Data`}
+                </div>
               </div>
             </div>
 
@@ -265,9 +309,14 @@ const Dashboard = ({ user, onLogout }) => {
                 <div className="error-icon">⚠️</div>
                 <h3 className="error-title">Terjadi Masalah</h3>
                 <p className="error-description">{error}</p>
-                <button onClick={handleRetry} className="retry-btn">
-                  Coba Lagi
-                </button>
+                <div className="error-actions">
+                  <button onClick={handleRetry} className="retry-btn">
+                    Reload Halaman
+                  </button>
+                  <button onClick={handleRefresh} className="refresh-btn-alt">
+                    Coba Refresh Data
+                  </button>
+                </div>
               </div>
             )}
 
@@ -276,7 +325,9 @@ const Dashboard = ({ user, onLogout }) => {
               <div className="loading-container">
                 <div className="loading-spinner"></div>
                 <p className="loading-text">Memuat data...</p>
-                <p className="loading-subtext">Jika loading terlalu lama, periksa koneksi internet</p>
+                <p className="loading-subtext">
+                  {loading ? "Menghubungkan ke server..." : ""}
+                </p>
               </div>
             )}
 
@@ -292,7 +343,7 @@ const Dashboard = ({ user, onLogout }) => {
             )}
 
             {/* Submissions List */}
-            {!loading && !error && submissions.length > 0 && (
+            {!loading && submissions.length > 0 && (
               <div className="submissions-list">
                 {submissions.map((item) => (
                   <div key={item.id} className={`submission-item ${item.isTemporary ? 'temporary' : ''}`}>
