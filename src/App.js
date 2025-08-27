@@ -9,47 +9,44 @@ import './styles/Global.css';
 const App = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [forceLogout, setForceLogout] = useState(false);
+  const [showAutoLoginDialog, setShowAutoLoginDialog] = useState(false);
 
   useEffect(() => {
-    // Check if user wants to force logout (from URL parameter or localStorage)
-    const urlParams = new URLSearchParams(window.location.search);
-    const forceLogoutParam = urlParams.get('logout');
-    const savedForceLogout = localStorage.getItem('forceLogout');
-    
-    if (forceLogoutParam === 'true' || savedForceLogout === 'true') {
-      setForceLogout(true);
-      localStorage.removeItem('forceLogout');
-      // Clear URL parameter
-      if (forceLogoutParam) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-
     // Firebase auth state listener
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       console.log('Auth state changed:', user);
       
-      // If force logout is requested, sign out the user
-      if (forceLogout && user) {
-        try {
-          await signOut(auth);
-          setUser(null);
-          setForceLogout(false);
-        } catch (error) {
-          console.error('Force logout error:', error);
+      if (user) {
+        // Check if this is an automatic login (user was already signed in)
+        const isManualLogin = sessionStorage.getItem('manualLogin') === 'true';
+        const hasShownDialog = sessionStorage.getItem('autoLoginDialogShown') === 'true';
+        
+        if (!isManualLogin && !hasShownDialog) {
+          // Show dialog for automatic login
+          setShowAutoLoginDialog(true);
+          sessionStorage.setItem('autoLoginDialogShown', 'true');
+        } else {
+          // Direct login (manual or user chose to stay)
+          setUser(user);
         }
       } else {
-        setUser(user);
+        // User is logged out
+        setUser(null);
+        setShowAutoLoginDialog(false);
+        // Clear session flags
+        sessionStorage.removeItem('manualLogin');
+        sessionStorage.removeItem('autoLoginDialogShown');
       }
       
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [forceLogout]);
+  }, []);
 
-  const handleLogin = (userData) => {
+  const handleManualLogin = (userData) => {
+    // Mark as manual login
+    sessionStorage.setItem('manualLogin', 'true');
     setUser(userData);
   };
 
@@ -57,19 +54,23 @@ const App = () => {
     try {
       await signOut(auth);
       setUser(null);
-      // Clear any stored session data
-      localStorage.clear();
+      setShowAutoLoginDialog(false);
+      // Clear session data
+      sessionStorage.clear();
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
-  const handleForceLogout = () => {
-    setForceLogout(true);
-    localStorage.setItem('forceLogout', 'true');
-    if (user) {
-      handleLogout();
-    }
+  const handleStayLoggedIn = () => {
+    setShowAutoLoginDialog(false);
+    sessionStorage.setItem('manualLogin', 'true');
+    setUser(auth.currentUser);
+  };
+
+  const handleForceLogout = async () => {
+    setShowAutoLoginDialog(false);
+    await handleLogout();
   };
 
   if (loading) {
@@ -81,18 +82,16 @@ const App = () => {
     );
   }
 
-  // Show logout option if user is automatically logged in
-  const showAutoLoginAlert = user && !forceLogout && window.location.search !== '?manual=true';
-
   return (
     <div className="app">
-      {showAutoLoginAlert && (
+      {/* Auto Login Dialog */}
+      {showAutoLoginDialog && (
         <div className="auto-login-alert">
           <div className="alert-content">
             <p>Anda sudah login sebelumnya. Apakah ingin tetap login atau logout?</p>
             <div className="alert-buttons">
               <button 
-                onClick={() => window.history.replaceState({}, document.title, window.location.pathname + '?manual=true')}
+                onClick={handleStayLoggedIn}
                 className="btn-stay"
               >
                 Tetap Login
@@ -108,10 +107,10 @@ const App = () => {
         </div>
       )}
       
-      {user && !forceLogout ? (
+      {user && !showAutoLoginDialog ? (
         <Dashboard user={user} onLogout={handleLogout} />
       ) : (
-        <Login onLogin={handleLogin} />
+        <Login onLogin={handleManualLogin} />
       )}
     </div>
   );

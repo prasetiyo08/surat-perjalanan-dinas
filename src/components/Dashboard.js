@@ -1,4 +1,4 @@
-// src/components/Dashboard.js
+// src/components/Dashboard.js - OPTIMIZED VERSION
 import React, { useState, useEffect } from "react";
 import InputForm from "./InputForm";
 import "../styles/Dashboard.css";
@@ -9,72 +9,183 @@ import { firestore } from "../config/firebase";
 const Dashboard = ({ user, onLogout }) => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Load data dari Firestore saat component mount
+  // Load data dengan retry mechanism dan timeout
   useEffect(() => {
+    let isMounted = true; // Prevent state updates if component unmounted
+    
+    const loadSubmissions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        console.log("Loading submissions...");
+        
+        // Add timeout untuk loading
+        const timeoutId = setTimeout(() => {
+          if (isMounted) {
+            console.log("Loading timeout reached");
+            setError("Loading terlalu lama. Mencoba lagi...");
+            // Retry setelah timeout
+            setTimeout(() => {
+              if (isMounted) {
+                loadSubmissionsWithCache();
+              }
+            }, 2000);
+          }
+        }, 8000); // 8 second timeout
+        
+        const data = await firestore.getDocuments("surat-perjalanan", true);
+        
+        // Clear timeout jika berhasil
+        clearTimeout(timeoutId);
+        
+        if (!isMounted) return; // Component unmounted
+        
+        // Sort by createdAt descending (terbaru dulu)
+        const sortedData = data.sort((a, b) => {
+          const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
+          const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
+          return dateB - dateA;
+        });
+
+        setSubmissions(sortedData);
+        console.log(`Loaded ${sortedData.length} submissions`);
+        
+      } catch (error) {
+        console.error("Error loading submissions:", error);
+        if (isMounted) {
+          setError(`Gagal memuat data: ${error.message}`);
+          // Auto retry after 3 seconds
+          setTimeout(() => {
+            if (isMounted) {
+              loadSubmissionsWithCache();
+            }
+          }, 3000);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    // Function to load with cache fallback
+    const loadSubmissionsWithCache = async () => {
+      try {
+        setLoading(true);
+        // Try cache first, then server
+        const data = await firestore.getDocuments("surat-perjalanan", true);
+        if (isMounted) {
+          const sortedData = data.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
+            const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
+            return dateB - dateA;
+          });
+          setSubmissions(sortedData);
+          setError(null);
+        }
+      } catch (error) {
+        console.error("Cache loading failed:", error);
+        if (isMounted) {
+          setError("Tidak dapat memuat data. Periksa koneksi internet.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     loadSubmissions();
-  }, []);
-
-  const loadSubmissions = async () => {
-    try {
-      setLoading(true);
-      const data = await firestore.getDocuments("surat-perjalanan");
-
-      // Sort by createdAt descending (terbaru dulu)
-      const sortedData = data.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-
-      setSubmissions(sortedData);
-    } catch (error) {
-      console.error("Error loading submissions:", error);
-      alert("Gagal memuat data. Periksa koneksi internet.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only load once
 
   const handleFormSubmit = async (formData) => {
     try {
-      // Simpan ke Firestore tanpa menunggu reload data
+      console.log("Submitting form data...");
+      
+      // Optimistic update - add to UI immediately
+      const tempId = `temp_${Date.now()}`;
+      const newSubmission = {
+        id: tempId,
+        ...formData,
+        userId: user.uid,
+        userEmail: user.email,
+        createdAt: new Date(),
+        isTemporary: true // Mark as temporary
+      };
+      
+      // Add to UI immediately
+      setSubmissions(prev => [newSubmission, ...prev]);
+      
+      // Save to Firestore in background
       const docRef = await firestore.addDocument("surat-perjalanan", {
         ...formData,
         userId: user.uid,
         userEmail: user.email,
       });
 
-      // Update UI immediately tanpa reload dari server
-      const newSubmission = {
-        id: docRef.id,
-        ...formData,
-        userId: user.uid,
-        userEmail: user.email,
-        createdAt: new Date(), // Use local date
-      };
-
-      setSubmissions([newSubmission, ...submissions]);
-      alert("Data berhasil disimpan!");
+      // Replace temporary item with real one
+      setSubmissions(prev => prev.map(item => 
+        item.id === tempId 
+          ? { ...item, id: docRef.id, isTemporary: false }
+          : item
+      ));
+      
+      console.log("Data saved successfully");
+      
     } catch (error) {
-      console.error("Error:", error);
-      alert("Gagal menyimpan. Periksa koneksi internet.");
+      console.error("Submit error:", error);
+      
+      // Remove temporary item on error
+      setSubmissions(prev => prev.filter(item => !item.isTemporary));
+      
+      // Show specific error message
+      if (error.message.includes('network')) {
+        alert("Gagal menyimpan: Masalah koneksi internet");
+      } else if (error.message.includes('permission')) {
+        alert("Gagal menyimpan: Tidak memiliki izin");
+      } else {
+        alert(`Gagal menyimpan data: ${error.message}`);
+      }
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
       try {
+        // Optimistic delete - remove from UI first
+        const itemToDelete = submissions.find(item => item.id === id);
+        setSubmissions(prev => prev.filter(item => item.id !== id));
+        
+        // Delete from Firestore
         await firestore.deleteDocument("surat-perjalanan", id);
-        setSubmissions(submissions.filter((item) => item.id !== id));
-        alert("Data berhasil dihapus!");
+        console.log("Data deleted successfully");
+        
       } catch (error) {
-        console.error("Error deleting submission:", error);
-        alert("Gagal menghapus data. Coba lagi.");
+        console.error("Delete error:", error);
+        
+        // Restore item on error
+        if (itemToDelete) {
+          setSubmissions(prev => [itemToDelete, ...prev].sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
+            const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(b.tanggalDibuat);
+            return dateB - dateA;
+          }));
+        }
+        
+        alert(`Gagal menghapus data: ${error.message}`);
       }
     }
   };
 
   const handleEdit = (id) => {
-    // Fungsi edit bisa ditambahkan nanti
     alert("Fitur edit akan segera hadir!");
   };
 
@@ -89,6 +200,13 @@ const Dashboard = ({ user, onLogout }) => {
       console.error("Logout error:", error);
       alert("Gagal logout. Coba lagi.");
     }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    // Trigger reload
+    window.location.reload();
   };
 
   return (
@@ -141,12 +259,29 @@ const Dashboard = ({ user, onLogout }) => {
               </div>
             </div>
 
-            {loading ? (
+            {/* Error State */}
+            {error && (
+              <div className="error-state">
+                <div className="error-icon">⚠️</div>
+                <h3 className="error-title">Terjadi Masalah</h3>
+                <p className="error-description">{error}</p>
+                <button onClick={handleRetry} className="retry-btn">
+                  Coba Lagi
+                </button>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {loading && !error && (
               <div className="loading-container">
                 <div className="loading-spinner"></div>
                 <p className="loading-text">Memuat data...</p>
+                <p className="loading-subtext">Jika loading terlalu lama, periksa koneksi internet</p>
               </div>
-            ) : submissions.length === 0 ? (
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && submissions.length === 0 && (
               <div className="empty-state">
                 <div className="empty-icon">📋</div>
                 <h3 className="empty-title">Belum Ada Data</h3>
@@ -154,22 +289,29 @@ const Dashboard = ({ user, onLogout }) => {
                   Silakan isi form di atas untuk menambah data perjalanan dinas
                 </p>
               </div>
-            ) : (
+            )}
+
+            {/* Submissions List */}
+            {!loading && !error && submissions.length > 0 && (
               <div className="submissions-list">
                 {submissions.map((item) => (
-                  <div key={item.id} className="submission-item">
+                  <div key={item.id} className={`submission-item ${item.isTemporary ? 'temporary' : ''}`}>
                     <div className="submission-header">
                       <div className="submission-info">
                         <h3 className="submission-name">{item.nama}</h3>
                         <span className="submission-position">
                           {item.jabatan}
                         </span>
+                        {item.isTemporary && (
+                          <span className="temp-badge">Menyimpan...</span>
+                        )}
                       </div>
                       <div className="submission-actions">
                         <button
                           onClick={() => handleEdit(item.id)}
                           className="action-btn edit-btn"
                           title="Edit data"
+                          disabled={item.isTemporary}
                         >
                           ✏️
                         </button>
@@ -177,6 +319,7 @@ const Dashboard = ({ user, onLogout }) => {
                           onClick={() => handleDelete(item.id)}
                           className="action-btn delete-btn"
                           title="Hapus data"
+                          disabled={item.isTemporary}
                         >
                           🗑️
                         </button>
@@ -199,49 +342,34 @@ const Dashboard = ({ user, onLogout }) => {
                       <div className="detail-row">
                         <span className="detail-label">Periode:</span>
                         <span className="detail-value">
-                          {new Date(item.tanggalMulai).toLocaleDateString(
-                            "id-ID"
-                          )}{" "}
-                          -{" "}
-                          {new Date(item.tanggalSelesai).toLocaleDateString(
-                            "id-ID"
-                          )}
+                          {new Date(item.tanggalMulai).toLocaleDateString("id-ID")} - {new Date(item.tanggalSelesai).toLocaleDateString("id-ID")}
                         </span>
                       </div>
                       <div className="detail-row">
                         <span className="detail-label">Transport:</span>
-                        <span className="detail-value">
-                          {item.fasilitasTransport}
-                        </span>
+                        <span className="detail-value">{item.fasilitasTransport}</span>
                       </div>
                       <div className="detail-row">
                         <span className="detail-label">Penginapan:</span>
-                        <span className="detail-value">
-                          {item.fasilitasPenginapan}
-                        </span>
+                        <span className="detail-value">{item.fasilitasPenginapan}</span>
                       </div>
                       {item.pengikut && item.pengikut.length > 0 && (
                         <div className="detail-row">
                           <span className="detail-label">Pengikut:</span>
-                          <span className="detail-value">
-                            {item.pengikut.join(", ")}
-                          </span>
+                          <span className="detail-value">{item.pengikut.join(", ")}</span>
                         </div>
                       )}
                     </div>
 
                     <div className="submission-footer">
                       <span className="submission-date">
-                        Dibuat:{" "}
-                        {item.createdAt
-                          ? new Date(
-                              item.createdAt.toDate()
-                            ).toLocaleDateString("id-ID")
-                          : item.tanggalDibuat}
+                        Dibuat: {
+                          item.createdAt?.toDate?.() 
+                            ? item.createdAt.toDate().toLocaleDateString("id-ID")
+                            : item.tanggalDibuat || new Date().toLocaleDateString("id-ID")
+                        }
                       </span>
-                      <span
-                        className={`status-badge ${item.biayaPerjalanan.toLowerCase()}`}
-                      >
+                      <span className={`status-badge ${item.biayaPerjalanan.toLowerCase()}`}>
                         {item.biayaPerjalanan}
                       </span>
                     </div>
