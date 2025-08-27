@@ -1,4 +1,4 @@
-// src/components/InputForm.js
+// src/components/InputForm.js - OPTIMIZED VERSION
 import React, { useState } from 'react';
 import '../styles/InputForm.css';
 
@@ -18,6 +18,7 @@ const InputForm = ({ onSubmit }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [submitProgress, setSubmitProgress] = useState(0);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -58,31 +59,41 @@ const InputForm = ({ onSubmit }) => {
     }));
   };
 
+  // OPTIMIZED: Validasi form yang lebih efisien
   const validateForm = () => {
     const newErrors = {};
+    const requiredFields = [
+      { field: 'nama', message: 'Nama wajib diisi' },
+      { field: 'jabatan', message: 'Jabatan wajib diisi' },
+      { field: 'tujuan', message: 'Tujuan wajib diisi' },
+      { field: 'keperluan', message: 'Keperluan wajib diisi' },
+      { field: 'tanggalMulai', message: 'Tanggal mulai wajib diisi' },
+      { field: 'tanggalSelesai', message: 'Tanggal selesai wajib diisi' },
+      { field: 'fasilitasTransport', message: 'Fasilitas transport wajib dipilih' },
+      { field: 'fasilitasPenginapan', message: 'Fasilitas penginapan wajib dipilih' }
+    ];
+
+    // Check required fields efficiently
+    requiredFields.forEach(({ field, message }) => {
+      const value = formData[field];
+      if (!value || (typeof value === 'string' && !value.trim())) {
+        newErrors[field] = message;
+      }
+    });
     
-    if (!formData.nama.trim()) newErrors.nama = 'Nama wajib diisi';
-    if (!formData.jabatan.trim()) newErrors.jabatan = 'Jabatan wajib diisi';
-    if (!formData.tujuan.trim()) newErrors.tujuan = 'Tujuan wajib diisi';
-    if (!formData.keperluan.trim()) newErrors.keperluan = 'Keperluan wajib diisi';
-    if (!formData.tanggalMulai) newErrors.tanggalMulai = 'Tanggal mulai wajib diisi';
-    if (!formData.tanggalSelesai) newErrors.tanggalSelesai = 'Tanggal selesai wajib diisi';
-    if (!formData.fasilitasTransport) newErrors.fasilitasTransport = 'Fasilitas transport wajib dipilih';
-    if (!formData.fasilitasPenginapan) newErrors.fasilitasPenginapan = 'Fasilitas penginapan wajib dipilih';
-    
-    // Validate date range
+    // Validate date range only if both dates exist
     if (formData.tanggalMulai && formData.tanggalSelesai) {
-      if (new Date(formData.tanggalSelesai) < new Date(formData.tanggalMulai)) {
+      const startDate = new Date(formData.tanggalMulai);
+      const endDate = new Date(formData.tanggalSelesai);
+      
+      if (endDate < startDate) {
         newErrors.tanggalSelesai = 'Tanggal selesai tidak boleh lebih awal dari tanggal mulai';
       }
-    }
-    
-    // Validate past dates
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (formData.tanggalMulai) {
-      const startDate = new Date(formData.tanggalMulai);
+      
+      // Check if start date is in the past
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
       if (startDate < today) {
         newErrors.tanggalMulai = 'Tanggal mulai tidak boleh di masa lalu';
       }
@@ -100,28 +111,45 @@ const InputForm = ({ onSubmit }) => {
     return `SPPD.${randomNumber.toString().padStart(3, '0')}/DH/${month}/${year}-B`;
   };
 
+  // OPTIMIZED: Submit dengan progress tracking dan timeout handling
   const handleSubmit = async () => {
-    // Set loading state
     setLoading(true);
+    setSubmitProgress(0);
     
     try {
+      // Step 1: Validate form (10%)
+      setSubmitProgress(10);
       const validationErrors = validateForm();
       
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
         setLoading(false);
+        setSubmitProgress(0);
         return;
       }
 
+      // Step 2: Prepare data (20%)
+      setSubmitProgress(20);
       const submissionData = {
         ...formData,
         nomorSurat: generateNomorSurat(),
-        pengikut: formData.pengikut.filter(p => p.trim() !== ''), // Remove empty pengikut
-        tanggalDibuat: new Date().toLocaleDateString('id-ID') // Will be overridden by Firestore createdAt
+        pengikut: formData.pengikut.filter(p => p.trim() !== ''),
+        tanggalDibuat: new Date().toLocaleDateString('id-ID')
       };
       
-      // Call onSubmit (async function from Dashboard)
-      await onSubmit(submissionData);
+      // Step 3: Submit to Firebase (50%)
+      setSubmitProgress(50);
+      
+      // Add timeout for Firebase operation
+      const submitPromise = onSubmit(submissionData);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: Proses menyimpan terlalu lama')), 15000)
+      );
+      
+      await Promise.race([submitPromise, timeoutPromise]);
+      
+      // Step 4: Success cleanup (100%)
+      setSubmitProgress(100);
       
       // Reset form after successful submission
       setFormData({
@@ -138,16 +166,34 @@ const InputForm = ({ onSubmit }) => {
       });
       setErrors({});
       
+      // Show success message
+      setTimeout(() => setSubmitProgress(0), 1000);
+      
     } catch (error) {
       console.error('Error submitting form:', error);
-      // Error handling akan ditangani di Dashboard component
+      
+      if (error.message.includes('Timeout')) {
+        alert('Proses menyimpan terlalu lama. Periksa koneksi internet dan coba lagi.');
+      } else if (error.message.includes('network')) {
+        alert('Masalah koneksi internet. Periksa koneksi dan coba lagi.');
+      } else {
+        alert('Gagal menyimpan data. Coba lagi dalam beberapa saat.');
+      }
     } finally {
       setLoading(false);
+      setSubmitProgress(0);
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    if (e.key === 'Enter' && e.ctrlKey && !loading) {
+      handleSubmit();
+    }
+  };
+
+  // OPTIMIZED: Prevent multiple submissions
+  const handleSubmitClick = () => {
+    if (!loading) {
       handleSubmit();
     }
   };
@@ -367,21 +413,33 @@ const InputForm = ({ onSubmit }) => {
           </div>
         </div>
 
-        {/* Submit Button */}
+        {/* OPTIMIZED Submit Button with Progress */}
         <button 
-          onClick={handleSubmit}
+          onClick={handleSubmitClick}
           disabled={loading}
           className={`submit-btn ${loading ? 'loading' : ''}`}
         >
           <span className="submit-btn-text">
-            {loading ? 'Menyimpan Data...' : 'Simpan Data Perjalanan'}
+            {loading 
+              ? `Menyimpan Data... ${submitProgress}%` 
+              : 'Simpan Data Perjalanan'
+            }
           </span>
+          {loading && (
+            <div className="submit-progress-bar">
+              <div 
+                className="submit-progress-fill" 
+                style={{ width: `${submitProgress}%` }}
+              ></div>
+            </div>
+          )}
         </button>
         
-        {/* Hint */}
+        {/* Enhanced Hint */}
         <div className="form-hint">
           <p>
             <strong>Tips:</strong> Gunakan Ctrl+Enter untuk submit form dengan cepat
+            {loading && <br />}<strong>Mohon tunggu...</strong> Proses penyimpanan sedang berlangsung
           </p>
         </div>
       </div>
