@@ -187,8 +187,15 @@ const Dashboard = ({ user, onLogout }) => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+      // Store the item to delete before any operations
+      const itemToDelete = submissions.find(item => item.id === id);
+      if (!itemToDelete) {
+        console.error("Item not found:", id);
+        return;
+      }
+
       try {
-        const itemToDelete = submissions.find(item => item.id === id);
+        // Optimistic update - remove item first
         setSubmissions(prev => prev.filter(item => item.id !== id));
         
         const deletePromise = firestore.deleteDocument("surat-perjalanan", id);
@@ -224,13 +231,11 @@ const Dashboard = ({ user, onLogout }) => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      console.log("User logged out successfully");
       if (onLogout) {
         onLogout();
       }
     } catch (error) {
       console.error("Logout error:", error);
-      alert("Gagal logout. Coba lagi.");
     }
   };
 

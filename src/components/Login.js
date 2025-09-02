@@ -1,8 +1,8 @@
 // src/components/Login.js
 import React, { useState, useEffect } from "react";
 // Menggunakan impor yang relatif terhadap root proyek untuk menghindari kesalahan resolusi
-import "../styles/Login.css";
-import { auth } from "../config/firebase";
+import "./styles/Login.css";
+import { auth } from "./config/firebase";
 import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, browserLocalPersistence, onAuthStateChanged } from 'firebase/auth';
 
 const Login = ({ onLogin }) => {
@@ -10,7 +10,6 @@ const Login = ({ onLogin }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [rememberMe, setRememberMe] = useState(false); // State baru untuk "Tetap Login"
 
   // useEffect untuk memeriksa status otentikasi saat komponen dimuat
   useEffect(() => {
@@ -54,9 +53,8 @@ const Login = ({ onLogin }) => {
     }
 
     try {
-      // Menentukan persistensi berdasarkan state "rememberMe"
-      const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
-      await setPersistence(auth, persistenceType);
+      // Set session persistence - will clear when browser is closed
+      await setPersistence(auth, browserSessionPersistence);
 
       const result = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
       console.log("Login berhasil:", result.user);
@@ -144,18 +142,6 @@ const Login = ({ onLogin }) => {
               required
               autoComplete="current-password"
             />
-          </div>
-
-          {/* Checkbox "Tetap Login" yang baru */}
-          <div className="login-input-group remember-me">
-            <label>
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-              />
-              Tetap Login
-            </label>
           </div>
 
           <button
