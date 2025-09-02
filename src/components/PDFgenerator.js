@@ -1,244 +1,228 @@
-// src/components/PDFGenerator.js
 import jsPDF from 'jspdf';
-
-// Set font untuk support bahasa Indonesia
+import 'jspdf-autotable';
 import 'jspdf/dist/polyfills.es.js';
+
+// Import a base64 encoded logo to avoid external URL issues.
+// This is a generic placeholder logo.
+const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAARKSURBVHhe7Z1vy21VFMfP9XtLg8aYmEAC0ZTU0ogpCZEaESF5A4b/QM0g/0GFJEyE5A0kCA0j/gAJKRIbJtIYjBTTGzO9N/d1et+5z9l7rbX3PJuBe5/L7Puda5+9z1prn3vPOUoikUgikUgikUgkEilKkavpGNX4Zp6SgY5PxgP/yp+c/x/D0+EGeA/+fR/yA/wM34d34R/h1Rhv/Df8Nl6Fz2ECv+V3sA+fxGgO+yvg7zC8j/018An8E76Nn+F3eC/25zC+n/07+CX8PHz/9+A/+Bf8PfzlP/ATfIafwP/g/6L/C3yL/0P4+3sYfxn/gLfiTdhv+G/Y/g/g3+H/47/A38B/ws/gH/DX8C/xJ/gN/Af+If6P/xn/Bv8e/8V/jn+N/4n/jv+P/4r/gP+H/4R/g7+Af4N/gr+A/4Z/gH+A/w9/An8C/wJ/BP8Kfwp/Cv8Kfwp/Cv+C/oE9gm8N/wB/AH8L/wh/Bv8Kfwp/Cf+A/oP8B/w//CX8A/wT/AP8E/wD/BP8E/wD/CP8A/wD/CP8A/wT/AP8E/wj/AP8I/wD/CP8E/wT/AP8I/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wz/DP+M/wT/AP8I/wT/DP+M/wD/AP8I/wD/CP8E/wD/AP8I/wD/BP8A/wD/CP8A/wT/AP8I/wz/DP8M/wz/DP+M/wz/DP+M/wT/CP8E/wj/DP8E/wj/CP8A/wT/CP8A/wj/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wj/BP8M/wz/DP8M/wz/DP8M/wj/AP8I/wz/AP8I/wT/AP8A/wT/CP8A/wD/BP8A/wD/CP8A/wT/CP8A/wT/CP8A/wT/CP8A/wj/BP8A/wj/DP8M/wz/DP8M/wz/DP8M/wT/DP8M/wz/DP+M/wz/DP+M/wz/DP+M/wT/AP8I/wT/AP8I/wT/AP8A/wT/AP8A/wT/AP8E/wD/AP8E/wD/AP8I/wT/AP8I/wj/CP8M/wz/DP8M/wz/DP8M/wT/DP8M/wz/DP+M/wz/DP8M/wz/CP8E/wj/CP8E/wj/AP8A/wT/AP8E/wT/CP8A/wD/AP8E/wD/AP8A/wT/AP8E/wT/AP8E/wT/AP8E/wD/CP8E/wj/CP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/CP8E/wz/DP8M/wz/DP8M/wT/AP8I/wj/CP8M/wT/CP8A/wD/CP8A/wD/AP8A/wD/AP8A/wT/CP8A/wT/CP8A/wT/AP8E/wT/CP8A/wj/BP8A/wj/CP8A/wj/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/wz/DP8M/w-tIpFIJBKJRCKRSCQSiUQikUgkEolEpXgH0L2WdG8Y/eEAAAAASUVORK5CYII=';
 
 export const generateSuratPerjalananPDF = (data) => {
   try {
-    // Create new jsPDF instance
     const doc = new jsPDF('p', 'mm', 'a4');
-    
-    // Set font (default font untuk support karakter Indonesia)
     doc.setFont('helvetica');
-    
-    // Margin
-    const margin = 20;
+
+    const margin = 15;
     const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    
-    // Header perusahaan
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('PT BANDARA INTERNASIONAL BATAM', pageWidth / 2, margin, { align: 'center' });
-    
-    // Title
+
+    // --- PAGE 1 ---
+
+    // 1. Header with Logo
+    // Add logo image. Position: 15mm from left, 15mm from top. Size: 30x30 mm
+    doc.addImage(logoBase64, 'PNG', margin, margin, 30, 30);
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('SURAT PERJALANAN DINAS', pageWidth / 2, margin + 15, { align: 'center' });
-    
-    // Nomor Surat
-    doc.setFontSize(12);
+    doc.text('SURAT PERJALANAN DINAS', pageWidth - margin, margin + 10, { align: 'right' });
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Nomor : ${data.nomorSurat}`, pageWidth / 2, margin + 25, { align: 'center' });
-    
-    // Line separator
-    doc.line(margin, margin + 35, pageWidth - margin, margin + 35);
-    
-    let yPosition = margin + 50;
-    
-    // Content section
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    
-    // Diberikan kepada
-    doc.text('Diberikan kepada :', margin, yPosition);
-    yPosition += 10;
-    
-    // Data fields
-    const fields = [
-      { label: 'Nama', value: data.nama },
-      { label: 'Jabatan', value: data.jabatan },
-      { label: 'Tujuan', value: data.tujuan },
-      { label: 'Keperluan', value: data.keperluan }
-    ];
-    
-    fields.forEach(field => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${field.label} :`, margin, yPosition);
-      doc.setFont('helvetica', 'normal');
-      doc.text(field.value, margin + 35, yPosition);
-      yPosition += 8;
+    doc.text(`Nomor: ${data.nomorSurat || 'SPPD.XX/DH/XX/XXXX-B'}`, pageWidth - margin, margin + 18, { align: 'right' });
+
+    // 2. Main Details Table
+    const mainDetailsY = margin + 40;
+    doc.autoTable({
+      startY: mainDetailsY,
+      theme: 'plain',
+      styles: {
+        fontSize: 10,
+        cellPadding: { top: 1.5, right: 2, bottom: 1.5, left: 0 },
+        valign: 'top',
+      },
+      body: [
+        [{ content: 'Diberikan kepada:', styles: { fontStyle: 'normal', minCellHeight: 10 } }],
+        [{ content: 'Nama', styles: { fontStyle: 'bold' } }, ':', data.nama || ''],
+        [{ content: 'Jabatan', styles: { fontStyle: 'bold' } }, ':', data.jabatan || ''],
+        [{ content: 'Tujuan', styles: { fontStyle: 'bold' } }, ':', data.tujuan || ''],
+        [{ content: 'Keperluan', styles: { fontStyle: 'bold' } }, ':', data.keperluan || ''],
+        [
+          { content: 'Mulai Tanggal', styles: { fontStyle: 'bold' } },
+          ':',
+          formatSimpleDate(data.tanggalMulai)
+        ],
+        [
+          { content: 'Sampai dengan', styles: { fontStyle: 'bold' } },
+          ':',
+          formatSimpleDate(data.tanggalSelesai)
+        ],
+        [{ content: 'Dasar pelaksanaan', styles: { fontStyle: 'bold' } }, ':', ''],
+      ],
+      columnStyles: {
+        0: { cellWidth: 40, fontStyle: 'bold' },
+        1: { cellWidth: 5 },
+        2: { cellWidth: 'auto' },
+      },
     });
-    
-    yPosition += 5;
-    
-    // Tanggal
-    doc.setFont('helvetica', 'bold');
-    doc.text('Mulai Tanggal :', margin, yPosition);
-    doc.setFont('helvetica', 'normal');
-    doc.text(formatDate(data.tanggalMulai), margin + 40, yPosition);
-    yPosition += 8;
-    
-    doc.setFont('helvetica', 'bold');
-    doc.text('Sampai dengan :', margin, yPosition);
-    doc.setFont('helvetica', 'normal');
-    doc.text(formatDate(data.tanggalSelesai), margin + 40, yPosition);
-    yPosition += 15;
-    
-    // Keterangan lain-lain
-    doc.setFont('helvetica', 'bold');
-    doc.text('Keterangan lain-lain :', margin, yPosition);
-    yPosition += 8;
-    
-    const keterangan = [
-      `- Biaya Perjalanan dinas : ${data.biayaPerjalanan}`,
-      `- Fasilitas Transport : ${data.fasilitasTransport}`,
-      `- Fasilitas Penginapan : ${data.fasilitasPenginapan}`
-    ];
-    
-    doc.setFont('helvetica', 'normal');
-    keterangan.forEach(item => {
-      doc.text(item, margin, yPosition);
-      yPosition += 6;
+
+    // 3. Other Details Table
+    let finalY = doc.lastAutoTable.finalY + 5;
+    doc.autoTable({
+      startY: finalY,
+      theme: 'plain',
+      styles: { fontSize: 10, cellPadding: { top: 1.5, right: 2, bottom: 1.5, left: 0 } },
+      body: [
+        [{ content: 'Keterangan lain-lain:', styles: { fontStyle: 'normal', minCellHeight: 8 } }],
+        ['Biaya Perjalanan dinas', ':', data.biayaPerjalanan || ''],
+        ['Fasilitas Transport', ':', data.fasilitasTransport || ''],
+        ['Fasilitas Penginapan', ':', data.fasilitasPenginapan || ''],
+        [
+          'Pengikut',
+          ':',
+          data.pengikut && data.pengikut.length > 0 ? data.pengikut.join('\n') : '-',
+        ],
+      ],
+      columnStyles: {
+        0: { cellWidth: 40, fontStyle: 'normal' },
+        1: { cellWidth: 5 },
+        2: { cellWidth: 'auto' },
+      },
     });
-    
-    // Pengikut (jika ada)
-    if (data.pengikut && data.pengikut.length > 0 && data.pengikut[0] !== '') {
-      doc.text('- Pengikut :', margin, yPosition);
-      yPosition += 6;
-      data.pengikut.forEach(pengikut => {
-        doc.text(`  ${pengikut}`, margin + 10, yPosition);
-        yPosition += 6;
-      });
-    }
-    
-    yPosition += 15;
-    
-    // Penutup
-    const penutup = [
-      'Demikian surat tugas ini dikeluarkan untuk dapat dilaksanakan dengan sebaik-baiknya',
-      'dan penuh tanggung jawab.'
-    ];
-    
-    penutup.forEach(line => {
-      doc.text(line, margin, yPosition);
-      yPosition += 6;
+
+    // 4. Closing Statement
+    finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      'Demikian surat tugas ini dikeluarkan untuk dapat dilaksanakan dengan sebaik-baiknya dan penuh tanggung jawab.',
+      margin,
+      finalY,
+      { maxWidth: pageWidth - margin * 2 }
+    );
+
+    // 5. Signature Section
+    const issueDate = data.createdAt?.toDate ? data.createdAt.toDate() : new Date();
+    const signatureX = pageWidth - 80; // Align to the right
+    let signatureY = finalY + 20;
+
+    doc.autoTable({
+        startY: signatureY,
+        theme: 'plain',
+        tableWidth: 'wrap',
+        margin: { left: signatureX },
+        styles: { fontSize: 10, cellPadding: 0, halign: 'left' },
+        body: [
+            [{content: 'Dikeluarkan', styles: {cellWidth: 25}}, ':', 'Batam'],
+            ['Pada tanggal', ':', formatDate(issueDate)],
+            [{ content: '\nPT Bandara Internasional Batam', colSpan: 3, styles: { minCellHeight: 10 } }],
+            [{ content: 'a.n Direktur Hukum & SDM', colSpan: 3 }],
+            [{ content: 'u.b VP Human Capital & GA', colSpan: 3 }],
+            [{ content: '\n\n\nI Wayan Widana', colSpan: 3, styles: { fontStyle: 'bold', minCellHeight: 30 } }]
+        ],
+        columnStyles: { 1: { cellWidth: 5 } }
     });
-    
-    yPosition += 15;
-    
-    // Footer - Tanggal dan tempat
-    doc.text('Dikeluarkan : Batam', margin, yPosition);
-    yPosition += 6;
-    doc.text(`Pada tanggal : ${formatDate(new Date())}`, margin, yPosition);
-    
-    // Tanda tangan section
-    yPosition += 20;
-    const ttdX = pageWidth - 80;
-    
-    doc.text('PT Bandara Internasional Batam', ttdX, yPosition);
-    yPosition += 6;
-    doc.text('a.n Direktur Hukum & SDM', ttdX, yPosition);
-    yPosition += 6;
-    doc.text('u.b VP Human Capital & GA', ttdX, yPosition);
-    yPosition += 25;
-    doc.setFont('helvetica', 'bold');
-    doc.text('I Wayan Widana', ttdX, yPosition);
-    
-    // Second page - Form perjalanan
+
+
+    // --- PAGE 2 ---
     doc.addPage();
-    
-    // Reset position
-    yPosition = margin;
-    
-    // Header page 2
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text('SURAT PERJALANAN DINAS', pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 8;
-    
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Nomor : ${data.nomorSurat}`, pageWidth / 2, yPosition, { align: 'center' });
-    yPosition += 20;
-    
-    // Table structure for travel details
-    const sections = [
-      { 
-        title: 'I. Berangkat dari : Batam',
-        fields: [
-          'Pada tanggal : _______________',
-          'Ke : ______________________'
-        ]
-      },
-      { 
-        title: 'II. Tiba di : ________________',
-        fields: [
-          'Pada tanggal : _______________',
-          'Berangkat dari : ______________',
-          'Ke : ______________________',
-          'Pada tanggal : _______________'
-        ]
-      },
-      { 
-        title: 'III. Tiba kembali di : __________',
-        fields: [
-          'Pada tanggal : _______________'
-        ]
-      }
+
+    // 1. Travel Details Section
+    const tableBody = [
+        ['I.', 'Berangkat dari:', 'Batam', 'a.n. DIREKSI'],
+        ['', '(tempat kedudukan)'],
+        ['', 'Pada tanggal', ': ____________________', 'DIREKTUR HUKUM DAN SUMBER DAYA MANUSIA'],
+        ['', 'Ke', ': ____________________', 'u.b.'],
+        ['', '', '', 'VP HUMAN CAPITAL & GENERAL AFFAIR'],
+        ['', '', ''],
+        ['', '', '', { content: '\n\n\nI WAYAN WIDANA', styles: { fontStyle: 'bold', minCellHeight: 30 } }]
     ];
-    
-    sections.forEach(section => {
-      doc.setFont('helvetica', 'bold');
-      doc.text(section.title, margin, yPosition);
-      yPosition += 10;
-      
-      doc.setFont('helvetica', 'normal');
-      section.fields.forEach(field => {
-        doc.text(field, margin + 10, yPosition);
-        yPosition += 8;
-      });
-      yPosition += 10;
+
+    doc.autoTable({
+        startY: margin,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 1, valign: 'top' },
+        body: tableBody,
+        columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 60 },
+            3: { halign: 'center' }
+        }
     });
     
-    // Signature sections for page 2
-    yPosition += 10;
-    doc.text('a.n. DIREKSI', ttdX, yPosition);
-    yPosition += 6;
-    doc.text('DIREKTUR HUKUM DAN SUMBER DAYA MANUSIA', ttdX, yPosition);
-    yPosition += 6;
-    doc.text('u.b.', ttdX, yPosition);
-    yPosition += 6;
-    doc.text('VP HUMAN CAPITAL & GENERAL AFFAIR', ttdX, yPosition);
-    yPosition += 20;
-    doc.setFont('helvetica', 'bold');
-    doc.text('I WAYAN WIDANA', ttdX, yPosition);
+    finalY = doc.lastAutoTable.finalY + 5;
+
+    // 2. Arrival/Departure Details
+    const arrivalBody = [
+        ['II.', 'Tiba di', ': ____________________', 'Berangkat dari', ': ____________________'],
+        ['', 'Pada tanggal', ': ____________________', 'Ke', ': ____________________'],
+        ['', '', '', 'Pada tanggal', ': ____________________'],
+    ];
+
+     doc.autoTable({
+        startY: finalY,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 1 },
+        body: arrivalBody,
+        columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 60 },
+            3: { cellWidth: 30 },
+            4: { cellWidth: 'auto'},
+        }
+    });
+
+    finalY = doc.lastAutoTable.finalY + 5;
     
-    // Final section
-    yPosition += 30;
-    doc.setFont('helvetica', 'bold');
-    doc.text('IV. Catatan lain-lain:', margin, yPosition);
-    yPosition += 15;
-    
-    doc.setFont('helvetica', 'normal');
-    const catatanText = [
-      'Telah diperiksa, dengan keterangan bahwa perjalanan tersebut',
-      'benar dilakukan atas perintah dan semata-mata untuk kepentingan',
-      'jabatan dalam waktu yang sesingkat-singkatnya.'
+    // 3. Return Details & Signature
+    const returnBody = [
+        ['III.', 'Tiba kembali di', ': ____________________', 'a.n. DIREKSI'],
+        ['', '(tempat kedudukan)'],
+        ['', 'Pada tanggal', ': ____________________', 'DIREKTUR HUKUM DAN SUMBER DAYA MANUSIA'],
+        ['', '', '', 'u.b.'],
+        ['', '', '', 'VP HUMAN CAPITAL & GENERAL AFFAIR'],
+        ['', '', ''],
+        ['', '', '', { content: '\n\n\nI WAYAN WIDANA', styles: { fontStyle: 'bold', minCellHeight: 30 } }]
     ];
     
-    catatanText.forEach(line => {
-      doc.text(line, margin, yPosition);
-      yPosition += 6;
+     doc.autoTable({
+        startY: finalY,
+        theme: 'plain',
+        styles: { fontSize: 10, cellPadding: 1, valign: 'top' },
+        body: returnBody,
+        columnStyles: {
+            0: { cellWidth: 10 },
+            1: { cellWidth: 30 },
+            2: { cellWidth: 60 },
+            3: { halign: 'center' }
+        }
     });
     
-    // Generate filename
-    const filename = `SPPD_${data.nama.replace(/\s+/g, '_')}_${formatDateForFilename(new Date())}.pdf`;
-    
-    // Save the PDF
+    finalY = doc.lastAutoTable.finalY + 5;
+
+    // 4. Final Notes
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('IV. Catatan lain-lain:', margin, finalY);
+    doc.text(
+      'Telah diperiksa, dengan keterangan bahwa perjalanan tersebut benar dilakukan atas perintah dan semata-mata untuk kepentingan jabatan dalam waktu yang sesingkat-singkatnya.',
+      margin,
+      finalY + 10,
+      { maxWidth: pageWidth / 2 - margin }
+    );
+
+
+    // --- SAVE DOCUMENT ---
+    const filename = `SPPD_${data.nama.replace(/\s+/g, '_')}_${formatDateForFilename(issueDate)}.pdf`;
     doc.save(filename);
-    
+
     console.log('PDF generated successfully');
     return true;
-    
+
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw new Error('Gagal generate PDF: ' + error.message);
   }
 };
 
-// Helper functions
+// Helper functions to format dates
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -249,9 +233,18 @@ const formatDate = (dateString) => {
   });
 };
 
+const formatSimpleDate = (dateString) => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const options = { year: 'numeric', month: 'short', day: '2-digit' };
+  // Format to dd-MMM-yy
+  return date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
+};
+
 const formatDateForFilename = (date) => {
+  if (!date) return '';
   return date.toISOString().split('T')[0];
 };
 
-// Export default
+// Default export
 export default { generateSuratPerjalananPDF };
