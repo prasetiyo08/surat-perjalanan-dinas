@@ -227,7 +227,8 @@ export const generateSuratPerjalananPDF = (data) => {
 const formatDate = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
-  return date.toLocale-dateString('id-ID', {
+  // FIXED: Corrected the typo from toLocale-dateString to toLocaleDateString
+  return date.toLocaleDateString('id-ID', {
     day: '2-digit',
     month: 'long',
     year: 'numeric'
@@ -239,7 +240,7 @@ const formatSimpleDate = (dateString) => {
   const date = new Date(dateString);
   const options = { year: 'numeric', month: 'short', day: '2-digit' };
   // Format to dd-MMM-yy
-  return date.toLocale-dateString('en-GB', options).replace(/ /g, '-');
+  return date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
 };
 
 const formatDateForFilename = (date) => {
