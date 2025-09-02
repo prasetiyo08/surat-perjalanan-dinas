@@ -1,11 +1,9 @@
 // src/components/PDFgenerator.js
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 // DISABLED FOR DEBUGGING: The logo processing seems to cause the crash on Vercel.
-// const logoBase64 = 'data:image/png;base64,...';
-
-
+// const logoBase<div><hr></div>
 export const generateSuratPerjalananPDF = (data) => {
   try {
     const doc = new jsPDF('p', 'mm', 'a4');
@@ -15,10 +13,7 @@ export const generateSuratPerjalananPDF = (data) => {
     const pageWidth = doc.internal.pageSize.width;
 
     // --- PAGE 1 ---
-
-    // DISABLED FOR DEBUGGING: doc.addImage(logoBase64, 'PNG', margin, margin, 30, 30);
     
-    // Adjust title position since logo is removed
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
     doc.text('SURAT PERJALANAN DINAS', pageWidth / 2, margin + 10, { align: 'center' });
@@ -26,7 +21,7 @@ export const generateSuratPerjalananPDF = (data) => {
     doc.setFont('helvetica', 'normal');
     doc.text(`Nomor: ${data.nomorSurat || 'SPPD.XX/DH/XX/XXXX-B'}`, pageWidth / 2, margin + 18, { align: 'center' });
 
-    let y = margin + 30; // Adjusted starting Y position
+    let y = margin + 30;
     const labelX = margin;
     const separatorX = labelX + 40;
     const valueX = separatorX + 5;
@@ -81,7 +76,7 @@ export const generateSuratPerjalananPDF = (data) => {
     const signatureX = pageWidth - 80;
     let signatureY = y + 20;
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: signatureY,
         theme: 'plain',
         tableWidth: 'wrap',
@@ -111,7 +106,8 @@ export const generateSuratPerjalananPDF = (data) => {
         ['', '', ''],
         ['', '', '', { content: '\n\n\nI WAYAN WIDANA', styles: { fontStyle: 'bold', minCellHeight: 30 } }]
     ];
-    doc.autoTable({ startY: margin, theme: 'plain', styles: { fontSize: 10, cellPadding: 1, valign: 'top' }, body: tableBody, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 }, 2: { cellWidth: 60 }, 3: { halign: 'center' } } });
+    autoTable(doc, { startY: margin, theme: 'plain', styles: { fontSize: 10, cellPadding: 1, valign: 'top' }, body: tableBody, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 }, 2: { cellWidth: 60 }, 3: { halign: 'center' } } });
+    // FIXED: Removed TypeScript specific syntax '(doc as any)'
     finalY = doc.lastAutoTable.finalY + 5;
 
     const arrivalBody = [
@@ -119,7 +115,8 @@ export const generateSuratPerjalananPDF = (data) => {
         ['', 'Pada tanggal', ': ____________________', 'Ke', ': ____________________'],
         ['', '', '', 'Pada tanggal', ': ____________________'],
     ];
-    doc.autoTable({ startY: finalY, theme: 'plain', styles: { fontSize: 10, cellPadding: 1 }, body: arrivalBody, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 }, 2: { cellWidth: 60 }, 3: { cellWidth: 30 }, 4: { cellWidth: 'auto'}, } });
+    autoTable(doc, { startY: finalY, theme: 'plain', styles: { fontSize: 10, cellPadding: 1 }, body: arrivalBody, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 }, 2: { cellWidth: 60 }, 3: { cellWidth: 30 }, 4: { cellWidth: 'auto'}, } });
+    // FIXED: Removed TypeScript specific syntax '(doc as any)'
     finalY = doc.lastAutoTable.finalY + 5;
     
     const returnBody = [
@@ -131,7 +128,8 @@ export const generateSuratPerjalananPDF = (data) => {
         ['', '', ''],
         ['', '', '', { content: '\n\n\nI WAYAN WIDANA', styles: { fontStyle: 'bold', minCellHeight: 30 } }]
     ];
-    doc.autoTable({ startY: finalY, theme: 'plain', styles: { fontSize: 10, cellPadding: 1, valign: 'top' }, body: returnBody, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 }, 2: { cellWidth: 60 }, 3: { halign: 'center' } } });
+    autoTable(doc, { startY: finalY, theme: 'plain', styles: { fontSize: 10, cellPadding: 1, valign: 'top' }, body: returnBody, columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 }, 2: { cellWidth: 60 }, 3: { halign: 'center' } } });
+    // FIXED: Removed TypeScript specific syntax '(doc as any)'
     finalY = doc.lastAutoTable.finalY + 5;
 
     doc.setFontSize(10);
