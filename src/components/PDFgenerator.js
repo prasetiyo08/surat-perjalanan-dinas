@@ -1,8 +1,9 @@
+// src/components/PDFgenerator.js
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-// import 'jspdf/dist/polyfills.es.js'; // Keep this removed
 
-const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAANQSURBVHhe7d1vb+JVDMfx9e1NAiEhDRgM8hQJ8iQkiA+QP8AP4I9QPAkPaehBSoqEhB5A8gQRkzzJm/Gvj9Wapu2Z2Xv22t/te36etb621p5nZ2Z3dqVSqVQqlUqlUqlUKpWqB+B63MBt3MR13MMHHMYh/Bbn8BC/43t4jo/xFd7FcPwEV/E9bMVGvIX38BjvwEd4Gq/g2/gSduMjbMVWnMPTeBf242fcxY/xCL6OF3ET3+B7+B5243M8g8d4Dq9h4987PoRX8AGewbN4Ct/AFyB/L/Pvwk/wCX4L38Zt/BHP4mUcwW3cgk/hSbiJ13ARv+AD/BUn8CgO4zfcwR/wFd7D/biG/b8f9/AZD+E3/B2P4knsxpN4Do/iTdzFfTiNB3Aan8JBeBT/wt04joN4CgdxF/fgX3gQj+BDfB6P4E08iS/wBR7BPfgo7sJj+Bq/4wYcw0Ecxx04h2P4FrfgXlyD/jdwAIfxKI7jfuwH3O0G3MM7cB2f4z7uwmU8igdxAPfgXLyGp/Eibsc7cBmH8BBuw8/xBe6GjXiPz/AjbsNWfI5f4U7cjPfwD+6E2/Ecbseb+Bv34xbuw204h/twBf+H++BefA634XFcj1uwF/fhdB+uw53Yh7twDf/3cDvuw3U8jeu4G9/hbuzAJbiKz/An7sfP+B73YBP2428cw5P4K+7Fk3gWX8BduAJ34QncjSdxFJ/gQ9yBD3A/3os38A4ew22cxy2YgP/f4z7sxs/4DnfhGtzB/XgOvyfA/51v4vE8iR+wl/s5A/6P8AMew8v4EvcjA/5T/AJ+D4j/q/A6fsxR/zP4L0yA/1zH90sA/N+GD/Ekbscn+D3o/0fciB/xb3D/k/hV+P/L+DdeA/+5/38A/9+F/0D4X/iH8P+1+D8/fH/8V7wA/3P/XwD/34//QPg//Bv+/zr8vzz8/9h34U+E/+kP/B/87/x/qFQqlUqlUqlUKpVKpQYV/wAnN1bUf/4q9wAAAABJRU5ErkJggg==';
+// DISABLED FOR DEBUGGING: The logo processing seems to cause the crash on Vercel.
+// const logoBase64 = 'data:image/png;base64,...';
 
 
 export const generateSuratPerjalananPDF = (data) => {
@@ -15,16 +16,17 @@ export const generateSuratPerjalananPDF = (data) => {
 
     // --- PAGE 1 ---
 
-    doc.addImage(logoBase64, 'PNG', margin, margin, 30, 30);
+    // DISABLED FOR DEBUGGING: doc.addImage(logoBase64, 'PNG', margin, margin, 30, 30);
+    
+    // Adjust title position since logo is removed
     doc.setFontSize(16);
     doc.setFont('helvetica', 'bold');
-    doc.text('SURAT PERJALANAN DINAS', pageWidth - margin, margin + 10, { align: 'right' });
+    doc.text('SURAT PERJALANAN DINAS', pageWidth / 2, margin + 10, { align: 'center' });
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Nomor: ${data.nomorSurat || 'SPPD.XX/DH/XX/XXXX-B'}`, pageWidth - margin, margin + 18, { align: 'right' });
+    doc.text(`Nomor: ${data.nomorSurat || 'SPPD.XX/DH/XX/XXXX-B'}`, pageWidth / 2, margin + 18, { align: 'center' });
 
-    // --- Manual Text Placement for Stability ---
-    let y = margin + 50;
+    let y = margin + 30; // Adjusted starting Y position
     const labelX = margin;
     const separatorX = labelX + 40;
     const valueX = separatorX + 5;
@@ -34,7 +36,6 @@ export const generateSuratPerjalananPDF = (data) => {
     doc.text('Diberikan kepada:', labelX, y);
     y += lineHeight + 3;
 
-    // A helper function for drawing rows to ensure alignment
     const drawRow = (label, value) => {
         doc.setFont('helvetica', 'bold');
         doc.text(label, labelX, y);
@@ -61,7 +62,6 @@ export const generateSuratPerjalananPDF = (data) => {
     drawRow('Fasilitas Transport', data.fasilitasTransport);
     drawRow('Fasilitas Penginapan', data.fasilitasPenginapan);
     
-    // Handle 'Pengikut' which can be an array
     const pengikutText = data.pengikut && data.pengikut.length > 0 && data.pengikut[0] !== ''
       ? data.pengikut.join('\n')
       : '-';
@@ -179,3 +179,4 @@ const formatDateForFilename = (date) => {
 };
 
 export default { generateSuratPerjalananPDF };
+
