@@ -1,8 +1,8 @@
 // src/components/Login.js
 import React, { useState, useEffect } from "react";
 // Menggunakan impor yang relatif terhadap root proyek untuk menghindari kesalahan resolusi
-import "./styles/Login.css";
-import { auth } from "./config/firebase";
+import "../styles/Login.css";
+import { auth } from "../config/firebase";
 import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, browserLocalPersistence, onAuthStateChanged } from 'firebase/auth';
 
 const Login = ({ onLogin }) => {

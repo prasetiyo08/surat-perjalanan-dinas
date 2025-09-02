@@ -1,6 +1,7 @@
-// src/components/Dashboard.js - OPTIMIZED VERSION - Fixed Loading Issues
+// src/components/Dashboard.js - UPDATED WITH PDF DOWNLOAD
 import React, { useState, useEffect } from "react";
 import InputForm from "./InputForm";
+import "../components/PDFgenerator";
 import "../styles/Dashboard.css";
 import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
@@ -169,6 +170,21 @@ const Dashboard = ({ user, onLogout }) => {
     }
   };
 
+  // NEW: Handle PDF download
+  const handleDownloadPDF = async (item) => {
+    try {
+      console.log("Generating PDF for:", item.nama);
+      await generateSuratPerjalananPDF(item);
+      
+      // Optional: Show success message
+      // alert("PDF berhasil diunduh!");
+      
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      alert("Gagal membuat PDF: " + error.message);
+    }
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus data ini?")) {
       try {
@@ -187,6 +203,7 @@ const Dashboard = ({ user, onLogout }) => {
         console.error("Delete error:", error);
         
         // Restore item on error
+        const itemToDelete = submissions.find(item => item.id === id);
         if (itemToDelete) {
           setSubmissions(prev => [itemToDelete, ...prev].sort((a, b) => {
             const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(a.tanggalDibuat);
@@ -358,6 +375,15 @@ const Dashboard = ({ user, onLogout }) => {
                         )}
                       </div>
                       <div className="submission-actions">
+                        {/* NEW: Download PDF Button */}
+                        <button
+                          onClick={() => handleDownloadPDF(item)}
+                          className="action-btn download-btn"
+                          title="Unduh PDF"
+                          disabled={item.isTemporary}
+                        >
+                          📄
+                        </button>
                         <button
                           onClick={() => handleEdit(item.id)}
                           className="action-btn edit-btn"

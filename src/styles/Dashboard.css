@@ -76,6 +76,12 @@
   gap: 16px;
 }
 
+.download-btn:hover {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: #22c55e;
+  transform: scale(1.1);
+}
+
 .user-info {
   display: flex;
   align-items: center;

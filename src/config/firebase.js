@@ -1,4 +1,4 @@
-// firebase.js - FIXED VERSION
+// firebase.js - UPDATED VERSION with New Configuration
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -15,13 +15,15 @@ import {
   limit
 } from "firebase/firestore";
 
+// UPDATED: New Firebase Configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBq3IzYwo3kJKyaV-FFmDmpEyMvOk_RYtA",
-  authDomain: "surat-perjalanan-dinas-6844b.firebaseapp.com",
-  projectId: "surat-perjalanan-dinas-6844b",
-  storageBucket: "surat-perjalanan-dinas-6844b.firebasestorage.app",
-  messagingSenderId: "62050725573",
-  appId: "1:620507255473:web:d88155ae80836824488890",
+  apiKey: "AIzaSyAx56fJn6T--88-9Jf0SM08Fe-1NNIRWko",
+  authDomain: "surat-perjalanan-dinas-6e7aa.firebaseapp.com",
+  projectId: "surat-perjalanan-dinas-6e7aa",
+  storageBucket: "surat-perjalanan-dinas-6e7aa.firebasestorage.app",
+  messagingSenderId: "4233757078",
+  appId: "1:4233757078:web:83c8fdd391b3d7ad589fb7",
+  measurementId: "G-PF4K0YCPKF"
 };
 
 // Initialize Firebase
@@ -45,7 +47,7 @@ export const db = getFirestore(app);
 // Export default app
 export default app;
 
-// FIXED Firestore helper functions
+// Firestore helper functions (unchanged)
 export const firestore = {
   // Add document with better error handling
   addDocument: async (collectionName, data, maxRetries = 2) => {
