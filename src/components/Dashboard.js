@@ -6,6 +6,8 @@ import "../styles/Dashboard.css";
 import { auth } from "../config/firebase";
 import { signOut } from "firebase/auth";
 import { firestore } from "../config/firebase";
+import { generateSuratPerjalananPDF } from "../components/PDFgenerator";
+
 
 const Dashboard = ({ user, onLogout }) => {
   const [submissions, setSubmissions] = useState([]);
