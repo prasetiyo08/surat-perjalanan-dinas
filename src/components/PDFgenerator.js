@@ -1,6 +1,5 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import 'jspdf/dist/polyfills.es.js';
 
 // UPDATED: Replaced the corrupted Base64 string with a valid one.
 // This is a placeholder logo. For a real logo, you'd generate a new Base64 string.
